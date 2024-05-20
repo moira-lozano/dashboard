@@ -1,2 +1,2 @@
 # dashboard
-Poryecto del dashoboard para el módulo de reportes
+Proyecto del dashboard para el módulo de reportes
