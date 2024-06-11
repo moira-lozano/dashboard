@@ -5,7 +5,7 @@ import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, get_products_by_color, get_products_by_brand
+from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, get_products_by_color, get_products_by_brand, get_products_by_promotion
 
 # Initialize the app with suppress_callback_exceptions
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
@@ -21,7 +21,7 @@ app.layout = html.Div(children=[
 
     dcc.Tabs(id='tabs', value='tab-ventas-totales', children=[
         dcc.Tab(label='Ventas Totales', value='tab-ventas-totales'),
-        dcc.Tab(label='Productos Más Comprados', value='tab-productos-mas-comprados')
+        dcc.Tab(label='Productos Más Demandados', value='tab-productos-mas-comprados')
     ]),
     
     html.Div(id='tabs-content')
@@ -79,7 +79,8 @@ def render_content(tab):
                     {'label': 'Por Talla', 'value': 'productos_por_talla'},
                     {'label': 'Por Modelo', 'value': 'productos_por_modelo'},
                     {'label': 'Por Color', 'value': 'productos_por_color'},
-                    {'label': 'Por Marca', 'value': 'productos_por_marca'}
+                    {'label': 'Por Marca', 'value': 'productos_por_marca'},
+                    {'label': 'Por Promocion', 'value': 'productos_por_promocion'}
                 ],
                 value='productos_por_talla',
                 style={'text-align': 'center', 'color': 'black'},
@@ -190,11 +191,39 @@ def update_products_graph(selected_option):
         if df_products.empty:
             return {}
         
-        # Crear gráfico de sectores
-        fig = px.pie(df_products, names='marca', values='cantidad_vendida', color='producto', title='Productos más Comprados por Marca',
+          # Crear gráfico de barras
+        fig = px.bar(df_products, x='marca', y='cantidad_vendida', color='producto', title='Productos más Comprados por Marca',
                      labels={'marca': 'Marca', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
         
         return fig
+    
+    elif selected_option == 'productos_por_promocion':
+        products_by_promotion = get_products_by_promotion()
+        print("Datos recibidos de get_products_by_promotion:", products_by_promotion)  # Debugging print
+        df_products = pd.DataFrame(products_by_promotion)
+        
+        if df_products.empty:
+            return {}
+        
+        print("DataFrame de productos por promocion:", df_products)  # Debugging print
+        
+        # Verificar si 'promocion' está en las columnas del DataFrame, si no, añadir una columna ficticia
+        if 'promocion' not in df_products.columns:
+            df_products['promocion'] = 'Promocion Activa'  # Añadir una columna ficticia si 'promocion' no está presente
+        
+        # Transformar los datos para que sean adecuados para un gráfico de barras agrupadas
+        df_products_melted = df_products.melt(id_vars=['producto', 'promocion'], value_vars=['precio', 'descuento'],
+                                              var_name='tipo', value_name='valor')
+        
+        print("DataFrame transformado:", df_products_melted)  # Debugging print
+        
+        # Crear gráfico de barras agrupadas
+        fig = px.bar(df_products_melted, x='producto', y='valor', color='tipo', barmode='group',
+                     title='Precio y Descuento de Productos en Promoción',
+                     labels={'producto': 'Producto', 'valor': 'Valor', 'tipo': 'Tipo'})
+        
+        return fig
+    
     
 if __name__ == '__main__':
          app.run_server(debug=True)
