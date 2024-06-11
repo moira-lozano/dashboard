@@ -142,8 +142,10 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         else:
             print('Error: Unexpected data format')
             return {}, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
+        
 
 # Callback para actualizar el gráfico de productos más comprados
+
 @app.callback(
     Output('products-graph', 'figure'),
     Input('productos-radioitems', 'value')
