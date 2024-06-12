@@ -7,9 +7,15 @@ from dash.dependencies import Input, Output
 
 from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, get_products_by_color, get_products_by_brand, get_products_by_promotion
 import os
+from dotenv import load_dotenv
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
 # URL del backend
-BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app')
+BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app/api')
+
+OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
 
 # Initialize the app with suppress_callback_exceptions
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
