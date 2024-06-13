@@ -148,10 +148,14 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         # Debug print to check the data format
         print(f'Sales by date range data: {sales_by_date_range}')
         
-        if isinstance(sales_by_date_range, dict) and isinstance(sales_by_date_range.get('total_sales_by_date_range'), list):
-            df_date_range = pd.DataFrame(sales_by_date_range['total_sales_by_date_range'])
-            fig = px.line(df_date_range, x='date', y='total_sales', title=f'Total de Ventas desde {start_date} hasta {end_date}',
-                          labels={'date': 'Fecha', 'total_sales': 'Total de Ventas'})
+        if isinstance(sales_by_date_range, dict) and isinstance(sales_by_date_range.get('total_sales_by_month'), list):
+            df_date_range = pd.DataFrame(sales_by_date_range['total_sales_by_month'])
+            df_date_range['month'] = df_date_range['month'].apply(lambda x: f'{x:02}')
+            df_date_range['date'] = df_date_range['year'].astype(str) + '-' + df_date_range['month']
+            
+            fig = px.bar(df_date_range, x='date', y='total_sales', title=f'Total de Ventas desde {start_date} hasta {end_date}',
+                          labels={'date': 'Fecha', 'total_sales': 'Total de Ventas'},
+                          text_auto=True)
             return fig, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
         else:
             print('Error: Unexpected data format')
