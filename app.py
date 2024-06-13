@@ -9,6 +9,9 @@ from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_dat
 import os
 from dotenv import load_dotenv
 
+# Aquí importarías tu función para obtener datos de clientes recurrentes
+from data_fetcher import get_sales_recurring_customers
+
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
@@ -34,7 +37,8 @@ app.layout = html.Div(children=[
 
     dcc.Tabs(id='tabs', value='tab-ventas-totales', children=[
         dcc.Tab(label='Ventas Totales', value='tab-ventas-totales'),
-        dcc.Tab(label='Productos Más Demandados', value='tab-productos-mas-comprados')
+        dcc.Tab(label='Productos Más Demandados', value='tab-productos-mas-comprados'),
+         dcc.Tab(label='Clientes Recurrentes', value='tab-clientes-recurrentes')
     ]),
     
     html.Div(id='tabs-content')
@@ -103,6 +107,28 @@ def render_content(tab):
                 id='products-graph'
             )
         ])
+    
+    elif tab == 'tab-clientes-recurrentes':
+        # Obtener datos de clientes recurrentes
+        recurring_customers = get_sales_recurring_customers()
+
+        # Crear DataFrame desde los datos de clientes recurrentes
+        df_recurring_customers = pd.DataFrame(recurring_customers)
+
+        # Crear figura de Plotly Express
+        fig = px.bar(df_recurring_customers, x='customer_id', y='total_spent', title='Clientes Recurrentes - Total Gastado',
+                     labels={'customer_id': 'ID del Cliente', 'total_spent': 'Total Gastado'})
+
+        # Actualizar diseño del gráfico (opcional)
+        fig.update_layout(xaxis_title='ID del Cliente', yaxis_title='Total Gastado')
+
+        # Renderizar el gráfico en un componente dcc.Graph
+        return html.Div([
+            dcc.Graph(figure=fig)
+        ])
+
+    # Si no se selecciona ninguna pestaña válida, devuelve una página vacía o un mensaje de error
+    return html.Div()
 
 # Callback para actualizar el gráfico basado en la selección del usuario
 @app.callback(
@@ -151,6 +177,9 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         else:
             print('Error: Unexpected data format')
             return {}, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
+
+      
+        
 
 # Callback para actualizar el gráfico de productos más comprados
 @app.callback(
