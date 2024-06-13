@@ -5,7 +5,9 @@ import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, get_products_by_color, get_products_by_brand, get_products_by_promotion, get_sales_recurring_customers, get_customer_name
+from data_fetcher import  (get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, 
+                           get_products_by_color, get_products_by_brand, get_products_by_promotion, get_sales_recurring_customers, 
+                           get_customer_name)
 import os
 from dotenv import load_dotenv
 
