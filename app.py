@@ -16,6 +16,9 @@ load_dotenv()
 BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app/api')
 OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
 
+# Obtener el puerto de la variable de entorno PORT (Railway lo asigna automáticamente)
+port = int(os.getenv('PORT', 8050))
+
 # Initialize the app with suppress_callback_exceptions
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 server = app.server  # Exponer el servidor Flask subyacente
@@ -235,5 +238,6 @@ def update_products_graph(selected_option):
         return fig
     
     
-if __name__ == '__main__':
-         app.run_server(debug=True, port=8050)
+if __name__ == "__main__":
+    # Ejecutar la aplicación en el puerto especificado
+    app.run_server(host="0.0.0.0", port=port)
