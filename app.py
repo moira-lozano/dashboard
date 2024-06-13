@@ -171,7 +171,7 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
                      text=df_customers['total_spent'], height=500)
         min_total_spent = df_customers['total_spent'].min()
         fig.update_layout(yaxis=dict(range=[min_total_spent, df_customers['total_spent'].max()]))
-        return fig
+        return fig, {'display': 'none'}, {'display': 'none'}
       
         
 
