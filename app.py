@@ -157,6 +157,10 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         
     elif selected_option == 'ventas_totales_cliente':
         sales_by_customers = get_sales_recurring_customers()
+        
+        # Limitar los datos a los primeros 50 elementos
+        sales_by_customers = sales_by_customers[:50]
+        
         customer_names = []
         for customer in sales_by_customers:
             customer_id = customer['customer_id']
