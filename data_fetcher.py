@@ -33,17 +33,6 @@ def get_sales_by_date_range(start_date, end_date):
     else:
         print(f'Error: {response.status_code}')
         return {}
-    
-#clientes recurrentes
-#http://127.0.0.1:8000/sales/recurring-customers
-def get_sales_recurring_custoners():
-    url = f'{OTHER_SERVICE_URL}/sales/recurring-customers'
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()["total_sales_recurring_customers"]
-    else:
-        print(f'Error: {response.status_code}')
-        return []
 
 
 def get_products_by_sizes():
@@ -87,6 +76,17 @@ def get_products_by_promotion():
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
+    else:
+        print(f'Error: {response.status_code}')
+        return []
+    
+#clientes recurrentes
+#http://127.0.0.1:8000/sales/recurring-customers
+def get_sales_recurring_custoners():
+    url = f'{OTHER_SERVICE_URL}/sales/recurring-customers'
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()["total_sales_recurring_customers"]
     else:
         print(f'Error: {response.status_code}')
         return []
