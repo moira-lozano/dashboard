@@ -1,6 +1,6 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
@@ -238,4 +238,4 @@ def update_products_graph(selected_option):
     
     
 if __name__ == '__main__':
-         app.run_server(debug=True)
+         app.run_server(debug=True, port=8050)
