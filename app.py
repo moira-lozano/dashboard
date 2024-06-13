@@ -1,4 +1,3 @@
-import dash
 from dash import dcc
 from dash import html
 import plotly.express as px
@@ -14,11 +13,11 @@ load_dotenv()
 
 # URL del backend
 BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app/api')
-
 OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
 
 # Initialize the app with suppress_callback_exceptions
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
+server = app.server  # Exponer el servidor Flask subyacente
 
 # Obtener datos iniciales
 sales_by_year = get_sales_by_year()
@@ -43,7 +42,7 @@ app.layout = html.Div(children=[
     Input('tabs', 'value')
 )
 def render_content(tab):
-    if tab == 'tab-ventas-totales':
+    if (tab == 'tab-ventas-totales'):
         return html.Div([
             dcc.RadioItems(
                 id='ventas-radioitems',
@@ -80,7 +79,7 @@ def render_content(tab):
                 id='sales-graph'
             )
         ])
-    elif tab == 'tab-productos-mas-comprados':
+    elif (tab == 'tab-productos-mas-comprados'):
         return html.Div([
             dcc.RadioItems(
                 id='productos-radioitems',
@@ -148,10 +147,8 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         else:
             print('Error: Unexpected data format')
             return {}, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
-        
 
 # Callback para actualizar el gráfico de productos más comprados
-
 @app.callback(
     Output('products-graph', 'figure'),
     Input('productos-radioitems', 'value')
