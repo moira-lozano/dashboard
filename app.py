@@ -5,7 +5,7 @@ import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
 
-from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, get_products_by_color, get_products_by_brand, get_products_by_promotion, get_sales_recurring_custoners
+from data_fetcher import get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, get_products_by_color, get_products_by_brand, get_products_by_promotion, get_sales_recurring_customers, get_customer_name
 import os
 from dotenv import load_dotenv
 
@@ -16,6 +16,7 @@ load_dotenv()
 # URL del backend
 BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app/api')
 OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
+GRAPHQL_ENDPOINT = os.getenv('GRAPHQL_ENDPOINT', 'http://18.218.15.90:8080/graphql')
 
 # Obtener el puerto de la variable de entorno PORT (Railway lo asigna automáticamente)
 port = int(os.getenv('PORT', 8050))
@@ -55,7 +56,8 @@ def render_content(tab):
                 options=[
                     {'label': 'Ventas totales por año', 'value': 'ventas_totales_año'},
                     {'label': 'Ventas totales por mes', 'value': 'ventas_totales_mes'},
-                    {'label': 'Ventas totales por rango de fechas', 'value': 'ventas_totales_fecha'}
+                    {'label': 'Ventas totales por rango de fechas', 'value': 'ventas_totales_fecha'},
+                    {'label': 'Ventas totales por clientes recurrentes', 'value': 'ventas_totales_cliente'}
                 ],
                 value='ventas_totales_año',
                 style={'text-align': 'center', 'color': 'black'},
@@ -152,7 +154,24 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         else:
             print('Error: Unexpected data format')
             return {}, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
+        
+    elif selected_option == 'ventas_totales_cliente':
+        sales_by_customers = get_sales_recurring_customers()
+        customer_names = []
+        for customer in sales_by_customers:
+            customer_id = customer['customer_id']
+            customer_name = get_customer_name(customer_id)
+            customer_names.append(customer_name if customer_name else 'Desconocido')
 
+        df_customers = pd.DataFrame(sales_by_customers)
+        df_customers['customer_name'] = customer_names
+
+        fig = px.bar(df_customers, x='customer_name', y='total_spent', title='Total de Ventas por Clientes Recurrentes',
+                     labels={'customer_name': 'Nombre de Cliente', 'total_spent': 'Total Gastado'},
+                     text=df_customers['total_spent'], height=500)
+        min_total_spent = df_customers['total_spent'].min()
+        fig.update_layout(yaxis=dict(range=[min_total_spent, df_customers['total_spent'].max()]))
+        return fig
       
         
 

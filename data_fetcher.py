@@ -6,6 +6,9 @@ BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-productio
 
 OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
 
+# URL del servicio externo
+GRAPHQL_ENDPOINT = os.getenv('GRAPHQL_ENDPOINT', 'http://18.218.15.90:8080/graphql')
+
 def get_sales_by_year():
     url = f'{OTHER_SERVICE_URL}/sales/total-sales-by-year'
     response = requests.get(url)
@@ -82,7 +85,7 @@ def get_products_by_promotion():
     
 #clientes recurrentes
 #http://127.0.0.1:8000/sales/recurring-customers
-def get_sales_recurring_custoners():
+def get_sales_recurring_customers():
     url = f'{OTHER_SERVICE_URL}/sales/recurring-customers'
     response = requests.get(url)
     if response.status_code == 200:
@@ -90,4 +93,29 @@ def get_sales_recurring_custoners():
     else:
         print(f'Error: {response.status_code}')
         return []
+    
+def get_customer_name(customer_id):
+    query = '''
+    {
+        customer(id: %s) {
+            id
+            name
+        }
+    }
+    ''' % customer_id
+
+    headers = {
+        'Content-Type': 'application/json',
+    }
+
+    try:
+        response = requests.post(GRAPHQL_ENDPOINT, json={'query': query}, headers=headers)
+        if response.status_code == 200:
+            return response.json().get('data', {}).get('customer', {}).get('name')
+        else:
+            print(f'Error: {response.status_code}')
+            return None
+    except Exception as e:
+        print(f'Error: {str(e)}')
+        return None
     
