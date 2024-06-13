@@ -87,12 +87,19 @@ def get_products_by_promotion():
 #http://127.0.0.1:8000/sales/recurring-customers
 def get_sales_recurring_customers():
     url = f'{OTHER_SERVICE_URL}/sales/recurring-customers'
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()["total_sales_recurring_customers"]
-    else:
-        print(f'Error: {response.status_code}')
-        return []
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raises an exception for bad response status
+        return response.json()["recurring_customers"]  # Assuming 'recurring_customers' is the correct key
+    except requests.exceptions.RequestException as e:
+        print(f'Error fetching recurring customers: {str(e)}')
+        return []  # Return empty list or handle error appropriately
+    except KeyError as e:
+        print(f'KeyError: {str(e)}')
+        return []  # Handle KeyError if necessary
+    except Exception as e:
+        print(f'Unexpected error: {str(e)}')
+        return []  # Handle unexpected errors
     
 def get_customer_name(customer_id):
     query = '''
