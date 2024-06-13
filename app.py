@@ -247,6 +247,11 @@ def update_products_graph(selected_option):
     elif selected_option == 'productos_por_promocion':
         products_by_promotion = get_products_by_promotion()
         print("Datos recibidos de get_products_by_promotion:", products_by_promotion)  # Debugging print
+        
+        # Limitar los datos a los primeros 50 registros si hay más de 50
+        if len(products_by_promotion) > 50:
+            products_by_promotion = products_by_promotion[:50]
+        
         df_products = pd.DataFrame(products_by_promotion)
         
         if df_products.empty:
@@ -260,16 +265,17 @@ def update_products_graph(selected_option):
         
         # Transformar los datos para que sean adecuados para un gráfico de barras agrupadas
         df_products_melted = df_products.melt(id_vars=['producto', 'promocion'], value_vars=['precio', 'descuento'],
-                                              var_name='tipo', value_name='valor')
+                                            var_name='tipo', value_name='valor')
         
         print("DataFrame transformado:", df_products_melted)  # Debugging print
         
         # Crear gráfico de barras agrupadas
         fig = px.bar(df_products_melted, x='producto', y='valor', color='tipo', barmode='group',
-                     title='Precio y Descuento de Productos en Promoción',
-                     labels={'producto': 'Producto', 'valor': 'Valor', 'tipo': 'Tipo'})
-        
-        return fig
+                    title='Precio y Descuento de Productos en Promoción',
+                    labels={'producto': 'Producto', 'valor': 'Valor', 'tipo': 'Tipo'})
+    
+    return fig
+
     
     
 if __name__ == "__main__":
