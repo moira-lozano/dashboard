@@ -157,19 +157,20 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
             print('Error: Unexpected data format')
             return {}, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
         
+        
     elif selected_option == 'ventas_totales_cliente':
         sales_by_customers = get_sales_recurring_customers()
         
-        # Limitar los datos a los primeros 50 elementos
-        sales_by_customers = sales_by_customers[:50]
+        # Filtrar y limitar los datos a los primeros 50 elementos donde total_spent >= 8000
+        filtered_sales_by_customers = [customer for customer in sales_by_customers if customer['total_spent'] >= 8000][:50]
         
         customer_names = []
-        for customer in sales_by_customers:
+        for customer in filtered_sales_by_customers:
             customer_id = customer['customer_id']
             customer_name = get_customer_name(customer_id)
             customer_names.append(customer_name if customer_name else 'Desconocido')
 
-        df_customers = pd.DataFrame(sales_by_customers)
+        df_customers = pd.DataFrame(filtered_sales_by_customers)
         df_customers['customer_name'] = customer_names
 
         fig = px.bar(df_customers, x='customer_name', y='total_spent', title='Total de Ventas por Clientes Recurrentes',
@@ -177,7 +178,7 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
                      text=df_customers['total_spent'], height=500)
         min_total_spent = df_customers['total_spent'].min()
         fig.update_layout(yaxis=dict(range=[min_total_spent, df_customers['total_spent'].max()]))
-        return fig, {'display': 'none'}, {'display': 'none'}
+    return fig, {'display': 'none'}, {'display': 'none'}
       
         
 
