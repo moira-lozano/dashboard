@@ -124,12 +124,10 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         sales_by_year = get_sales_by_year()
         df_year = pd.DataFrame(sales_by_year)
         fig = px.bar(df_year, x='year', y='total_sales', title='Total de Ventas por Año',
-                     labels={'year': 'Año', 'total_sales': 'Total de Ventas'},
-                     text_auto=True)
-        min_total_sales = df_year['total_sales'].min()
-        fig.update_layout(yaxis=dict(range=[min_total_sales, df_year['total_sales'].max()]))
+                 labels={'year': 'Año', 'total_sales': 'Total de Ventas'},
+                 text_auto=True)
         return fig, {'display': 'none'}, {'display': 'none'}
-    
+
     elif selected_option == 'ventas_totales_mes':
         if selected_year is None:
             return {}, {'display': 'block', 'textAlign': 'center'}, {'display': 'none'}
