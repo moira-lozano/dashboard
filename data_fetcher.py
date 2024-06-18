@@ -5,6 +5,7 @@ import requests
 BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app/api')
 
 OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
+#OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://127.0.0.1:8000')
 
 # URL del servicio externo
 GRAPHQL_ENDPOINT = os.getenv('GRAPHQL_ENDPOINT', 'http://18.218.15.90:8080/graphql')
@@ -37,6 +38,14 @@ def get_sales_by_date_range(start_date, end_date):
         print(f'Error: {response.status_code}')
         return {}
 
+def get_conversion_rate():
+    url = f'{OTHER_SERVICE_URL}/sales/conversion-rate'
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()["conversion_rates_by_year"]
+    else:
+        print(f'Error: {response.status_code}')
+        return []
 
 def get_products_by_sizes():
     url = f"{BACKEND_URL}/producto/masCompradosPorTalla"  

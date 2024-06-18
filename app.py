@@ -6,8 +6,8 @@ import pandas as pd
 from dash.dependencies import Input, Output
 
 from data_fetcher import  (get_sales_by_year, get_sales_by_month, get_sales_by_date_range, get_products_by_sizes, get_products_by_model, 
-                           get_products_by_color, get_products_by_brand, get_products_by_promotion, get_sales_recurring_customers, 
-                           get_customer_name)
+                            get_products_by_color, get_products_by_brand, get_products_by_promotion, get_sales_recurring_customers, 
+                            get_customer_name, get_conversion_rate)
 import os
 from dotenv import load_dotenv
 
@@ -18,6 +18,7 @@ load_dotenv()
 # URL del backend
 BACKEND_URL = os.getenv('BACKEND_URL', 'https://microservicioproductos-production.up.railway.app/api')
 OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://4.203.105.3')
+#OTHER_SERVICE_URL = os.getenv('OTHER_SERVICE_URL', 'http://127.0.0.1:8000')
 GRAPHQL_ENDPOINT = os.getenv('GRAPHQL_ENDPOINT', 'http://18.218.15.90:8080/graphql')
 
 # Obtener el puerto de la variable de entorno PORT (Railway lo asigna automáticamente)
@@ -38,7 +39,8 @@ app.layout = html.Div(children=[
 
     dcc.Tabs(id='tabs', value='tab-ventas-totales', children=[
         dcc.Tab(label='Ventas Totales', value='tab-ventas-totales'),
-        dcc.Tab(label='Productos Más Demandados', value='tab-productos-mas-comprados')
+        dcc.Tab(label='Productos Más Demandados', value='tab-productos-mas-comprados'),
+        dcc.Tab(label='Tasa de Conversión de Clientes', value='tab-conversion-rate')
     ]),
     
     html.Div(id='tabs-content')
@@ -108,24 +110,36 @@ def render_content(tab):
                 id='products-graph'
             )
         ])
+    elif (tab == 'tab-conversion-rate'):
+        # Obtener datos de tasa de conversión
+        conversion_data = get_conversion_rate()
+        df_conversion = pd.DataFrame(conversion_data)
+
+        # Crear gráfico de línea de tasa de conversión
+        fig = px.line(df_conversion, x='year', y='conversion_rate', title='Tasa de Conversión por Año',
+                    labels={'year': 'Año', 'conversion_rate': 'Tasa de Conversión'})
+
+        return html.Div([
+            dcc.Graph(id='conversion-graph', figure=fig)
+        ])
 
 # Callback para actualizar el gráfico basado en la selección del usuario
 @app.callback(
     [Output('sales-graph', 'figure'),
-     Output('year-dropdown-container', 'style'),
-     Output('date-picker-container', 'style')],
+        Output('year-dropdown-container', 'style'),
+        Output('date-picker-container', 'style')],
     [Input('ventas-radioitems', 'value'),
-     Input('year-dropdown', 'value'),
-     Input('date-picker-range', 'start_date'),
-     Input('date-picker-range', 'end_date')]
+        Input('year-dropdown', 'value'),
+        Input('date-picker-range', 'start_date'),
+        Input('date-picker-range', 'end_date')]
 )
 def update_sales_graph(selected_option, selected_year, start_date, end_date):
     if selected_option == 'ventas_totales_año':
         sales_by_year = get_sales_by_year()
         df_year = pd.DataFrame(sales_by_year)
         fig = px.bar(df_year, x='year', y='total_sales', title='Total de Ventas por Año',
-                 labels={'year': 'Año', 'total_sales': 'Total de Ventas'},
-                 text_auto=True)
+                labels={'year': 'Año', 'total_sales': 'Total de Ventas'},
+                text_auto=True)
         return fig, {'display': 'none'}, {'display': 'none'}
 
     elif selected_option == 'ventas_totales_mes':
@@ -134,8 +148,8 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         sales_by_month = get_sales_by_month(selected_year)
         df_month = pd.DataFrame(sales_by_month)
         fig = px.bar(df_month, x='month', y='total_sales', title=f'Total de Ventas por Mes del {selected_year}',
-                     labels={'month': 'Mes', 'total_sales': 'Total de Ventas'},
-                     text_auto=True)
+                        labels={'month': 'Mes', 'total_sales': 'Total de Ventas'},
+                        text_auto=True)
         return fig, {'display': 'block', 'textAlign': 'center'}, {'display': 'none'}
     
     elif selected_option == 'ventas_totales_fecha':
@@ -152,8 +166,8 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
             df_date_range['date'] = df_date_range['year'].astype(str) + '-' + df_date_range['month']
             
             fig = px.bar(df_date_range, x='date', y='total_sales', title=f'Total de Ventas desde {start_date} hasta {end_date}',
-                          labels={'date': 'Fecha', 'total_sales': 'Total de Ventas'},
-                          text_auto=True)
+                        labels={'date': 'Fecha', 'total_sales': 'Total de Ventas'},
+                        text_auto=True)
             return fig, {'display': 'none'}, {'display': 'block', 'textAlign': 'center'}
         else:
             print('Error: Unexpected data format')
@@ -176,13 +190,11 @@ def update_sales_graph(selected_option, selected_year, start_date, end_date):
         df_customers['customer_name'] = customer_names
 
         fig = px.bar(df_customers, x='customer_name', y='total_spent', title='Total de Ventas por Clientes Recurrentes',
-                     labels={'customer_name': 'Nombre de Cliente', 'total_spent': 'Total Gastado'},
-                     text=df_customers['total_spent'], height=500)
+                    labels={'customer_name': 'Nombre de Cliente', 'total_spent': 'Total Gastado'},
+                    text=df_customers['total_spent'], height=500)
         min_total_spent = df_customers['total_spent'].min()
         fig.update_layout(yaxis=dict(range=[min_total_spent, df_customers['total_spent'].max()]))
     return fig, {'display': 'none'}, {'display': 'none'}
-      
-        
 
 # Callback para actualizar el gráfico de productos más comprados
 @app.callback(
@@ -199,7 +211,7 @@ def update_products_graph(selected_option):
         
         # Crear gráfico de sectores
         fig = px.pie(df_products, names='talla', values='cantidad_vendida', color='producto', title='Productos más Comprados por Talla',
-                     labels={'talla': 'Talla', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
+                    labels={'talla': 'Talla', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
         
         return fig
     
@@ -212,7 +224,7 @@ def update_products_graph(selected_option):
         
         # Crear gráfico de sectores
         fig = px.pie(df_products, names='modelo', values='cantidad_vendida', color='producto', title='Productos más Comprados por Modelo',
-                     labels={'modelo': 'Modelo', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
+                    labels={'modelo': 'Modelo', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
         
         return fig
     
@@ -225,7 +237,7 @@ def update_products_graph(selected_option):
         
         # Crear gráfico de sectores
         fig = px.pie(df_products, names='color', values='cantidad_vendida', color='producto', title='Productos más Comprados por Color',
-                     labels={'color': 'Color', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
+                    labels={'color': 'Color', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
         
         return fig
     
@@ -236,9 +248,9 @@ def update_products_graph(selected_option):
         if df_products.empty:
             return {}
         
-          # Crear gráfico de barras
+        # Crear gráfico de barras
         fig = px.bar(df_products, x='marca', y='cantidad_vendida', color='producto', title='Productos más Comprados por Marca',
-                     labels={'marca': 'Marca', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
+                    labels={'marca': 'Marca', 'cantidad_vendida': 'Cantidad', 'producto': 'Producto'})
         
         return fig
     
@@ -274,7 +286,6 @@ def update_products_graph(selected_option):
     
     return fig
 
-    
     
 if __name__ == "__main__":
     # Ejecutar la aplicación en el puerto especificado
